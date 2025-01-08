@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.inf.pizzadronz.models.*;
 import uk.ac.ed.inf.pizzadronz.service.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/")
 public class Controller {
@@ -73,15 +71,17 @@ public class Controller {
     }
 
     @PostMapping("/calcDeliveryPath")
-    public ResponseEntity<List<LngLat>> calculateDeliveryPath(@RequestBody DeliveryPathRequest request) {
+    public ResponseEntity<Object> calculateDeliveryPath(@RequestBody Order order) {
         try {
-            // Use the CalcDeliveryPath service to calculate the path
-            List<LngLat> path = calcDeliveryPathService.calculateDeliveryPath(request.getRestaurantName());
-            return ResponseEntity.ok(path);
+            // Get the restaurant coordinates
+            CalcDeliveryPath.RestaurantCoordinates restaurantCoordinates = calcDeliveryPathService.getRestaurantCoordinates(order);
+            return ResponseEntity.ok(restaurantCoordinates);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            // Handle bad request errors
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            // Handle unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
 }

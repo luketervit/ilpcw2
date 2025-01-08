@@ -92,7 +92,7 @@ public class OrderValidationService {
     }
 
     // Validate pizzas (check prices, restaurant consistency, and existence)
-    private OrderValidationResult validatePizzas(Order order, List<Restaurant> restaurants) {
+    OrderValidationResult validatePizzas(Order order, List<Restaurant> restaurants) {
         Restaurant firstPizzaRestaurant = null;
 
         for (Pizza pizza : order.getPizzasInOrder()) {
