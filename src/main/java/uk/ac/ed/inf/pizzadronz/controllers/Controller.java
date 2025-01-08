@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.inf.pizzadronz.models.*;
 import uk.ac.ed.inf.pizzadronz.service.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/")
 public class Controller {
@@ -73,9 +75,9 @@ public class Controller {
     @PostMapping("/calcDeliveryPath")
     public ResponseEntity<Object> calculateDeliveryPath(@RequestBody Order order) {
         try {
-            // Get the restaurant coordinates
-            CalcDeliveryPath.RestaurantCoordinates restaurantCoordinates = calcDeliveryPathService.getRestaurantCoordinates(order);
-            return ResponseEntity.ok(restaurantCoordinates);
+            // Get the calculated path using A* algorithm
+            List<LngLat> path = calcDeliveryPathService.findPath(order);
+            return ResponseEntity.ok(path);
         } catch (IllegalArgumentException e) {
             // Handle bad request errors
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
