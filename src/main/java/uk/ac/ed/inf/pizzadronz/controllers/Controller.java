@@ -75,15 +75,14 @@ public class Controller {
     @PostMapping("/calcDeliveryPath")
     public ResponseEntity<Object> calculateDeliveryPath(@RequestBody Order order) {
         try {
-            // Get the calculated path using A* algorithm
             List<LngLat> path = calcDeliveryPathService.findPath(order);
             return ResponseEntity.ok(path);
         } catch (IllegalArgumentException e) {
-            // Handle bad request errors
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Pathfinding failed: " + e.getMessage());
         } catch (Exception e) {
-            // Handle unexpected errors
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
         }
     }
 }

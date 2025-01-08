@@ -33,10 +33,8 @@ public class CalcDeliveryPath {
     }
 
     private RestaurantCoordinates getRestaurantCoordinates(Order order) {
-        // Fetch restaurants from the API
         List<Restaurant> restaurants = fetchRestaurants();
 
-        // Find the restaurant associated with the first pizza in the order
         Restaurant restaurant = restaurants.stream()
                 .filter(r -> r.getMenu().stream()
                         .anyMatch(pizza -> pizza.getName().equalsIgnoreCase(order.getPizzasInOrder().get(0).getName())))
@@ -55,7 +53,7 @@ public class CalcDeliveryPath {
             }
             return List.of(restaurants);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to fetch restaurants: " + e.getMessage());
+            throw new RuntimeException("Failed to fetch restaurants: " + e.getMessage(), e);
         }
     }
 
@@ -68,7 +66,7 @@ public class CalcDeliveryPath {
             }
             return List.of(noFlyZones);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to fetch no-fly zones: " + e.getMessage());
+            throw new RuntimeException("Failed to fetch no-fly zones: " + e.getMessage(), e);
         }
     }
 
@@ -81,7 +79,7 @@ public class CalcDeliveryPath {
             }
             return centralRegion;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to fetch central region: " + e.getMessage());
+            throw new RuntimeException("Failed to fetch central region: " + e.getMessage(), e);
         }
     }
 
@@ -96,8 +94,14 @@ public class CalcDeliveryPath {
         fScore.put(start, calculateHeuristic(start, goal));
 
         boolean enteredCentralRegion = false;
+        int maxIterations = 50000; // Prevent infinite loops
+        int iterations = 0;
 
         while (!openSet.isEmpty()) {
+            if (++iterations > maxIterations) {
+                throw new IllegalStateException("Pathfinding exceeded maximum iterations.");
+            }
+
             Node current = openSet.poll();
             LngLat currentPosition = current.getLngLat();
 
