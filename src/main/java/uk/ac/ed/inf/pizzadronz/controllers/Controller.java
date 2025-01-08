@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import uk.ac.ed.inf.pizzadronz.constant.SystemConstants;
 import uk.ac.ed.inf.pizzadronz.models.*;
 import uk.ac.ed.inf.pizzadronz.service.*;
 
@@ -60,7 +61,7 @@ public class Controller {
             LngLat point = new LngLat(request.getPosition().getLng(), request.getPosition().getLat());
             Region region = request.getRegion();
 
-            boolean isInside = region.isInRegion(point);
+            boolean isInside = region.isInRegion(point, SystemConstants.NO_FLY_ZONE_BUFFER);
             return ResponseEntity.ok(isInside);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);

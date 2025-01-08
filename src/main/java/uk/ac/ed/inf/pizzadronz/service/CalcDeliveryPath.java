@@ -94,12 +94,11 @@ public class CalcDeliveryPath {
         fScore.put(start, calculateHeuristic(start, goal));
 
         boolean enteredCentralRegion = false;
-        int maxIterations = 50000; // Prevent infinite loops
         int iterations = 0;
 
         while (!openSet.isEmpty()) {
-            if (++iterations > maxIterations) {
-                throw new IllegalStateException("Pathfinding exceeded maximum iterations.");
+            if (++iterations > SystemConstants.DRONE_MAX_MOVES) {
+                throw new IllegalStateException("Pathfinding exceeded maximum allowed moves.");
             }
 
             Node current = openSet.poll();
@@ -141,7 +140,7 @@ public class CalcDeliveryPath {
         }
 
         for (Region noFlyZone : noFlyZones) {
-            if (noFlyZone.isInRegion(next)) {
+            if (noFlyZone.isInRegion(next, SystemConstants.NO_FLY_ZONE_BUFFER)) {
                 return false;
             }
         }

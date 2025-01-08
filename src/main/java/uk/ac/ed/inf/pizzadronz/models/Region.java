@@ -55,7 +55,7 @@ public class Region {
     }
 
     // Method to check if a given point is inside the region
-    public boolean isInRegion(LngLat point) {
+    public boolean isInRegion(LngLat point, double noFlyZoneBuffer) {
         if (vertices == null || vertices.size() < 3) {
             return false;
         }
@@ -98,5 +98,9 @@ public class Region {
         double xIntersection = v1.getLng() + (point.getLat() - v1.getLat()) * slope;
 
         return point.getLng() < xIntersection;
+    }
+
+    public boolean isInRegion(LngLat neighbor) {
+        return false;
     }
 }

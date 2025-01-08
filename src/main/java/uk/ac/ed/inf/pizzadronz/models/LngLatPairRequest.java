@@ -1,6 +1,7 @@
 package uk.ac.ed.inf.pizzadronz.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import uk.ac.ed.inf.pizzadronz.constant.SystemConstants;
 
 public class LngLatPairRequest {
 
@@ -64,7 +65,7 @@ public class LngLatPairRequest {
         }
 
         LngLat lngLat = new LngLat(position.getLng(), position.getLat());
-        return region.isInRegion(lngLat);
+        return region.isInRegion(lngLat, SystemConstants.NO_FLY_ZONE_BUFFER);
     }
 
     public static class Position {
