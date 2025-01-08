@@ -47,7 +47,6 @@ public class LngLatPairRequest {
         this.region = region;
     }
 
-    // Helper method to calculate distance between position1 and position2
     public double calculateDistance() {
         if (position1 == null || position2 == null) {
             throw new IllegalArgumentException("Both positions must be non-null.");
@@ -59,7 +58,6 @@ public class LngLatPairRequest {
         return LngLat.calculateDistance(lngLat1, lngLat2);
     }
 
-    // Method to check if a position is inside the given region
     public boolean isInRegion() {
         if (position == null || region == null) {
             throw new IllegalArgumentException("Position and region must be non-null.");
@@ -94,29 +92,21 @@ public class LngLatPairRequest {
         }
     }
 
-
     public boolean isCloseTo() {
         if (position1 == null || position2 == null) {
             throw new IllegalArgumentException("Both positions must be non-null.");
         }
 
-        // Get the latitude and longitude for both positions
         double lng1 = position1.getLng();
         double lat1 = position1.getLat();
         double lng2 = position2.getLng();
         double lat2 = position2.getLat();
 
-        // Calculate the differences in longitude and latitude
         double deltaLng = lng2 - lng1;
         double deltaLat = lat2 - lat1;
 
-        // Calculate the Euclidean distance
         double distance = Math.sqrt(deltaLng * deltaLng + deltaLat * deltaLat);
 
-        // Return true if the distance is less than 0.00015
         return distance < 0.00015;
     }
-
-
-
 }

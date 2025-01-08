@@ -16,6 +16,9 @@ public class Controller {
     @Autowired
     private OrderValidationService validationService;
 
+    @Autowired
+    private CalcDeliveryPath calcDeliveryPathService;
+
     @GetMapping("/uuid")
     public String uuid() {
         return "s2359358";
@@ -34,14 +37,12 @@ public class Controller {
     @PostMapping("/isCloseTo")
     public ResponseEntity<Boolean> isCloseTo(@RequestBody LngLatPairRequest request) {
         try {
-            // Call the isCloseTo method on the request object
             boolean result = request.isCloseTo();
             return ResponseEntity.ok(result);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
-
 
     @PostMapping("/nextPosition")
     public ResponseEntity<NextPositionRequest.Position> nextPosition(@RequestBody NextPositionRequest request) {
@@ -71,7 +72,16 @@ public class Controller {
         return ResponseEntity.ok(validationService.validateOrder(order));
     }
 
-    // Implementing the calcDeliveryPath endpoint
-    
-
+    @PostMapping("/calcDeliveryPath")
+    public ResponseEntity<List<LngLat>> calculateDeliveryPath(@RequestBody DeliveryPathRequest request) {
+        try {
+            // Use the CalcDeliveryPath service to calculate the path
+            List<LngLat> path = calcDeliveryPathService.calculateDeliveryPath(request.getRestaurantName());
+            return ResponseEntity.ok(path);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }
