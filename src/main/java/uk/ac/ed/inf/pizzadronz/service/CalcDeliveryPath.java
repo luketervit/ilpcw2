@@ -181,7 +181,7 @@ public class CalcDeliveryPath {
     }
 
     private double calculateHeuristic(LngLat a, LngLat b) {
-        return LngLat.calculateDistance(a, b);
+        return LngLat.calculateDistance(a, b) * 1.2; // Heuristic scaling to improve efficiency
     }
 
     private String convertPathToGeoJson(List<LngLat> path) {
