@@ -16,7 +16,10 @@ public class CalcDeliveryPath {
         this.restTemplate = restTemplate;
     }
 
-    public List<LngLat> findPath(Order order) {
+    public String findPath(Order order) {
+        // Validate the order before proceeding
+        validateOrder(order);
+
         // Fetch restaurant coordinates
         RestaurantCoordinates restaurantCoordinates = getRestaurantCoordinates(order);
 
@@ -28,8 +31,27 @@ public class CalcDeliveryPath {
         LngLat start = new LngLat(restaurantCoordinates.getLng(), restaurantCoordinates.getLat());
         LngLat goal = new LngLat(SystemConstants.APPLETON_LNG, SystemConstants.APPLETON_LAT);
 
-        // Perform A* algorithm
-        return aStarPathfinding(start, goal, noFlyZones, centralRegion);
+        // Perform A* algorithm and return the result as GeoJSON
+        List<LngLat> path = optimizedAStarPathfinding(start, goal, noFlyZones, centralRegion);
+        return convertPathToGeoJson(path);
+    }
+
+    private void validateOrder(Order order) {
+        if (order == null) {
+            throw new IllegalArgumentException("Order is null.");
+        }
+
+        if (!"VALID".equalsIgnoreCase(order.getOrderStatus())) {
+            throw new IllegalArgumentException("Order status is not valid: " + order.getOrderStatus());
+        }
+
+        if (!"NO_ERROR".equalsIgnoreCase(order.getOrderValidationCode())) {
+            throw new IllegalArgumentException("Order validation code is not valid: " + order.getOrderValidationCode());
+        }
+
+        if (order.getPizzasInOrder() == null || order.getPizzasInOrder().isEmpty()) {
+            throw new IllegalArgumentException("Order contains no pizzas.");
+        }
     }
 
     private RestaurantCoordinates getRestaurantCoordinates(Order order) {
@@ -83,7 +105,7 @@ public class CalcDeliveryPath {
         }
     }
 
-    private List<LngLat> aStarPathfinding(LngLat start, LngLat goal, List<Region> noFlyZones, Region centralRegion) {
+    private List<LngLat> optimizedAStarPathfinding(LngLat start, LngLat goal, List<Region> noFlyZones, Region centralRegion) {
         PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingDouble(Node::getFScore));
         Map<LngLat, LngLat> cameFrom = new HashMap<>();
         Map<LngLat, Double> gScore = new HashMap<>();
@@ -162,6 +184,43 @@ public class CalcDeliveryPath {
         return LngLat.calculateDistance(a, b);
     }
 
+    private String convertPathToGeoJson(List<LngLat> path) {
+        StringBuilder geoJson = new StringBuilder();
+        geoJson.append("{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",")
+                .append("\"geometry\":{\"type\":\"LineString\",\"coordinates\":[");
+
+        for (int i = 0; i < path.size(); i++) {
+            LngLat point = path.get(i);
+            geoJson.append("[").append(point.getLng()).append(",").append(point.getLat()).append("]");
+            if (i < path.size() - 1) {
+                geoJson.append(",");
+            }
+        }
+
+        geoJson.append("]},\"properties\":{}}]}");
+        return geoJson.toString();
+    }
+
+    private static class Node {
+        private final LngLat lngLat;
+        private final double gScore;
+        private final double fScore;
+
+        public Node(LngLat lngLat, double gScore, double fScore) {
+            this.lngLat = lngLat;
+            this.gScore = gScore;
+            this.fScore = fScore;
+        }
+
+        public LngLat getLngLat() {
+            return lngLat;
+        }
+
+        public double getFScore() {
+            return fScore;
+        }
+    }
+
     public static class RestaurantCoordinates {
         private final String name;
         private final double lng;
@@ -192,26 +251,6 @@ public class CalcDeliveryPath {
                     ", lng=" + lng +
                     ", lat=" + lat +
                     '}';
-        }
-    }
-
-    private static class Node {
-        private final LngLat lngLat;
-        private final double gScore;
-        private final double fScore;
-
-        public Node(LngLat lngLat, double gScore, double fScore) {
-            this.lngLat = lngLat;
-            this.gScore = gScore;
-            this.fScore = fScore;
-        }
-
-        public LngLat getLngLat() {
-            return lngLat;
-        }
-
-        public double getFScore() {
-            return fScore;
         }
     }
 }

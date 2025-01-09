@@ -76,7 +76,7 @@ public class Controller {
     @PostMapping("/calcDeliveryPath")
     public ResponseEntity<Object> calculateDeliveryPath(@RequestBody Order order) {
         try {
-            List<LngLat> path = calcDeliveryPathService.findPath(order);
+            String path = calcDeliveryPathService.findPath(order);
             return ResponseEntity.ok(path);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
