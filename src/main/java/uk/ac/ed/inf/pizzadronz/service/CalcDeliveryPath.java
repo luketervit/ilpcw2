@@ -36,6 +36,32 @@ public class CalcDeliveryPath {
         return convertPathToGeoJson(path);
     }
 
+
+    public List<LngLat> findPathAsLngLat(Order order) {
+        // Validate the order before proceeding
+        validateOrder(order);
+
+        // Fetch restaurant coordinates
+        RestaurantCoordinates restaurantCoordinates = getRestaurantCoordinates(order);
+
+        // Fetch no-fly zones and central area
+        List<Region> noFlyZones = fetchNoFlyZones();
+        Region centralRegion = fetchCentralRegion();
+
+        // Starting point (restaurant) and endpoint (Appleton)
+        LngLat start = new LngLat(restaurantCoordinates.getLng(), restaurantCoordinates.getLat());
+        LngLat goal = new LngLat(SystemConstants.APPLETON_LNG, SystemConstants.APPLETON_LAT);
+
+        // Perform A* algorithm and return the result as a list of LngLat
+        return optimizedAStarPathfinding(start, goal, noFlyZones, centralRegion);
+    }
+
+    public String findPathAsGeoJson(Order order) {
+        // Use the existing pathfinding logic and convert the result to GeoJSON
+        List<LngLat> path = findPathAsLngLat(order);
+        return convertPathToGeoJson(path);
+    }
+
     private void validateOrder(Order order) {
         if (order == null) {
             throw new IllegalArgumentException("Order is null.");

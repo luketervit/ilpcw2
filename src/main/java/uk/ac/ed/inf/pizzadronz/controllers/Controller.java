@@ -76,7 +76,7 @@ public class Controller {
     @PostMapping("/calcDeliveryPath")
     public ResponseEntity<Object> calculateDeliveryPath(@RequestBody Order order) {
         try {
-            String path = calcDeliveryPathService.findPath(order);
+            List<LngLat> path = calcDeliveryPathService.findPathAsLngLat(order);
             return ResponseEntity.ok(path);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -86,4 +86,19 @@ public class Controller {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
         }
     }
+
+    @PostMapping("/calcDeliveryPathAsGeoJson")
+    public ResponseEntity<Object> calculateDeliveryPathAsGeoJson(@RequestBody Order order) {
+        try {
+            String geoJson = calcDeliveryPathService.findPathAsGeoJson(order);
+            return ResponseEntity.ok(geoJson);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Pathfinding failed: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+        }
+    }
+
 }
