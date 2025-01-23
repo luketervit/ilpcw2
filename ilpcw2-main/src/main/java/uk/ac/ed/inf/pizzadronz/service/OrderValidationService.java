@@ -66,37 +66,27 @@ public class OrderValidationService {
         }
 
         // If no issues were found, return NO_ERROR
-        return new OrderValidationResult(OrderValidationCode.NO_ERROR, "Order is valid");
+        return new OrderValidationResult("VALID", OrderValidationCode.NO_ERROR.name());
     }
 
-    // Validate if the order has no pizzas
     private OrderValidationResult validateEmptyOrder(Order order) {
         if (order.getPizzasInOrder() == null || order.getPizzasInOrder().isEmpty()) {
-            return new OrderValidationResult(
-                    OrderValidationCode.EMPTY_ORDER,
-                    "The order contains no pizzas."
-            );
+            return new OrderValidationResult("INVALID", OrderValidationCode.EMPTY_ORDER.name());
         }
         return null; // Order is not empty
     }
 
-    // Validate maximum pizza count
     private OrderValidationResult validateMaxPizzaCount(Order order) {
         if (order.getPizzasInOrder().size() > MAX_PIZZAS) {
-            return new OrderValidationResult(
-                    OrderValidationCode.MAX_PIZZA_COUNT_EXCEEDED,
-                    "The order exceeds the maximum allowed number of pizzas (" + MAX_PIZZAS + ")."
-            );
+            return new OrderValidationResult("INVALID", OrderValidationCode.MAX_PIZZA_COUNT_EXCEEDED.name());
         }
         return null; // Pizza count is valid
     }
 
-    // Validate pizzas (check prices, restaurant consistency, and existence)
-    OrderValidationResult validatePizzas(Order order, List<Restaurant> restaurants) {
+    private OrderValidationResult validatePizzas(Order order, List<Restaurant> restaurants) {
         Restaurant firstPizzaRestaurant = null;
 
         for (Pizza pizza : order.getPizzasInOrder()) {
-            // Check if the pizza exists in any restaurant menu
             Restaurant restaurant = restaurants.stream()
                     .filter(r -> r.getMenu().stream()
                             .anyMatch(menuPizza -> menuPizza.getName().equalsIgnoreCase(pizza.getName())))
@@ -104,96 +94,68 @@ public class OrderValidationService {
                     .orElse(null);
 
             if (restaurant == null) {
-                return new OrderValidationResult(
-                        OrderValidationCode.PIZZA_NOT_DEFINED,
-                        "The pizza '" + pizza.getName() + "' is not defined in any restaurant's menu."
-                );
+                return new OrderValidationResult("INVALID", OrderValidationCode.PIZZA_NOT_DEFINED.name());
             }
 
-            // Check if pizza price matches the restaurant's menu
             Pizza menuPizza = restaurant.getMenu().stream()
                     .filter(menuItem -> menuItem.getName().equalsIgnoreCase(pizza.getName()))
                     .findFirst()
                     .orElse(null);
 
             if (menuPizza != null && pizza.getPriceInPence() != menuPizza.getPriceInPence()) {
-                return new OrderValidationResult(
-                        OrderValidationCode.PRICE_FOR_PIZZA_INVALID,
-                        "The price for pizza '" + pizza.getName() + "' is invalid. Expected: " + menuPizza.getPriceInPence() + " pence, Found: " + pizza.getPriceInPence() + " pence."
-                );
+                return new OrderValidationResult("INVALID", OrderValidationCode.PRICE_FOR_PIZZA_INVALID.name());
             }
 
-            // Determine the restaurant of the first pizza
             if (firstPizzaRestaurant == null) {
                 firstPizzaRestaurant = restaurant;
             }
 
-            // Check if all pizzas are from the same restaurant
             if (!restaurant.equals(firstPizzaRestaurant)) {
-                return new OrderValidationResult(
-                        OrderValidationCode.PIZZA_FROM_MULTIPLE_RESTAURANTS,
-                        "The pizzas in the order are from multiple restaurants."
-                );
+                return new OrderValidationResult("INVALID", OrderValidationCode.PIZZA_FROM_MULTIPLE_RESTAURANTS.name());
             }
         }
 
         return null; // All pizzas are valid
     }
 
-    // Validate the total price of the order
     private OrderValidationResult validateOrderTotal(Order order) {
-        // Calculate the expected total
         int calculatedTotal = order.getPizzasInOrder().stream()
-                .mapToInt(pizza -> pizza.getPriceInPence())
+                .mapToInt(Pizza::getPriceInPence)
                 .sum() + FIXED_CHARGE;
 
-        // Check if the total in the order matches the calculated total
         if (order.getPriceTotalInPence() != calculatedTotal) {
-            return new OrderValidationResult(
-                    OrderValidationCode.TOTAL_INCORRECT,
-                    "Order total is incorrect. Expected: " + calculatedTotal + " pence, Found: " + order.getPriceTotalInPence() + " pence."
-            );
+            return new OrderValidationResult("INVALID", OrderValidationCode.TOTAL_INCORRECT.name());
         }
 
         return null; // Total is correct
     }
 
-    // Validate if the restaurant is open on the order date
     private OrderValidationResult validateRestaurantOpen(Order order, List<Restaurant> restaurants) {
         Restaurant restaurant = order.determineRestaurant(restaurants);
         if (restaurant == null) {
-            return new OrderValidationResult(
-                    OrderValidationCode.RESTAURANT_CLOSED,
-                    "The restaurant is closed on the order date."
-            );
+            return new OrderValidationResult("INVALID", OrderValidationCode.RESTAURANT_CLOSED.name());
         }
 
-        String orderDay = getOrderDayFromDate(order.getOrderDate());
         if (!restaurant.isOpenOn(order.getOrderDate())) {
-            return new OrderValidationResult(
-                    OrderValidationCode.RESTAURANT_CLOSED,
-                    "Restaurant is closed on " + orderDay + "."
-            );
+            return new OrderValidationResult("INVALID", OrderValidationCode.RESTAURANT_CLOSED.name());
         }
 
         return null; // Restaurant is open
     }
 
-    // Validate credit card information (CVV, card number, expiry date)
     private OrderValidationResult validateCreditCardInformation(Order order) {
         if (!isValidCvv(order.getCreditCardInformation().getCvv())) {
-            return new OrderValidationResult(OrderValidationCode.CVV_INVALID, "Invalid CVV");
+            return new OrderValidationResult("INVALID", OrderValidationCode.CVV_INVALID.name());
         }
         if (!isValidCreditCardNumber(order.getCreditCardInformation().getCreditCardNumber())) {
-            return new OrderValidationResult(OrderValidationCode.CARD_NUMBER_INVALID, "Invalid Credit Card Number");
+            return new OrderValidationResult("INVALID", OrderValidationCode.CARD_NUMBER_INVALID.name());
         }
         if (!isValidCreditCardExpiry(order.getCreditCardInformation().getCreditCardExpiry())) {
-            return new OrderValidationResult(OrderValidationCode.EXPIRY_DATE_INVALID, "Invalid Credit Card Expiry Date");
+            return new OrderValidationResult("INVALID", OrderValidationCode.EXPIRY_DATE_INVALID.name());
         }
         return null;
     }
 
-    // Fetch restaurants from the API
     public List<Restaurant> fetchRestaurants() {
         try {
             String url = "https://ilp-rest-2024.azurewebsites.net/restaurants";
@@ -202,13 +164,6 @@ public class OrderValidationService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch restaurants from API: " + e.getMessage());
         }
-    }
-
-    // Helper method to get the day of the week from the orderDate string
-    private String getOrderDayFromDate(String orderDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse(orderDate, formatter);
-        return date.getDayOfWeek().toString(); // Return the day as a string (e.g., MONDAY, SUNDAY)
     }
 
     private boolean isValidCvv(String cvv) {

@@ -11,9 +11,11 @@ import java.util.*;
 public class CalcDeliveryPath {
 
     private final RestTemplate restTemplate;
+    private final OrderValidationService validationService;
 
-    public CalcDeliveryPath(RestTemplate restTemplate) {
+    public CalcDeliveryPath(RestTemplate restTemplate, OrderValidationService validationService) {
         this.restTemplate = restTemplate;
+        this.validationService = validationService;
     }
 
     public String findPath(Order order) {
@@ -35,7 +37,6 @@ public class CalcDeliveryPath {
         List<LngLat> path = optimizedAStarPathfinding(start, goal, noFlyZones, centralRegion);
         return convertPathToGeoJson(path);
     }
-
 
     public List<LngLat> findPathAsLngLat(Order order) {
         // Validate the order before proceeding
@@ -67,16 +68,12 @@ public class CalcDeliveryPath {
             throw new IllegalArgumentException("Order is null.");
         }
 
-        if (!"VALID".equalsIgnoreCase(order.getOrderStatus())) {
-            throw new IllegalArgumentException("Order status is not valid: " + order.getOrderStatus());
-        }
+        // Use OrderValidationService for validation
+        OrderValidationResult result = validationService.validateOrder(order);
 
-        if (!"NO_ERROR".equalsIgnoreCase(order.getOrderValidationCode())) {
-            throw new IllegalArgumentException("Order validation code is not valid: " + order.getOrderValidationCode());
-        }
-
-        if (order.getPizzasInOrder() == null || order.getPizzasInOrder().isEmpty()) {
-            throw new IllegalArgumentException("Order contains no pizzas.");
+        if (!"NO_ERROR".equals(result.getOrderValidationCode())) {
+            throw new IllegalArgumentException("Order validation failed: Status=" + result.getOrderStatus() +
+                    ", Code=" + result.getOrderValidationCode());
         }
     }
 
