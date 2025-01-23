@@ -2,32 +2,29 @@ package uk.ac.ed.inf.pizzadronz.models;
 
 import uk.ac.ed.inf.pizzadronz.constant.OrderValidationCode;
 
-
 public class OrderValidationResult {
 
-    private OrderValidationCode validationCode;
-    private String message;
+    private String orderStatus;
+    private String orderValidationCode;
 
-    // Constructor
-    public OrderValidationResult(OrderValidationCode validationCode, String message) {
-        this.validationCode = validationCode;
-        this.message = message;
+    public OrderValidationResult(String orderStatus, String orderValidationCode) {
+        this.orderStatus = orderStatus;
+        this.orderValidationCode = orderValidationCode;
     }
 
-    // Getters and setters
-    public OrderValidationCode getValidationCode() {
-        return validationCode;
+    public String getOrderStatus() {
+        return orderStatus;
     }
 
-    public void setValidationCode(OrderValidationCode validationCode) {
-        this.validationCode = validationCode;
+    public void setOrderStatus(String orderStatus) {
+        this.orderStatus = orderStatus;
     }
 
-    public String getMessage() {
-        return message;
+    public String getOrderValidationCode() {
+        return orderValidationCode;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setOrderValidationCode(String orderValidationCode) {
+        this.orderValidationCode = orderValidationCode;
     }
 }

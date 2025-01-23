@@ -70,8 +70,10 @@ public class Controller {
 
     @PostMapping("/validateOrder")
     public ResponseEntity<OrderValidationResult> validateOrder(@RequestBody Order order) {
-        return ResponseEntity.ok(validationService.validateOrder(order));
+        OrderValidationResult result = validationService.validateOrder(order);
+        return ResponseEntity.ok(result);
     }
+
 
     @PostMapping("/calcDeliveryPath")
     public ResponseEntity<Object> calculateDeliveryPath(@RequestBody Order order) {
