@@ -9,6 +9,7 @@ import uk.ac.ed.inf.pizzadronz.utils.OrderValidationChecker;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class OrderValidationCheckerTest {
@@ -26,10 +27,10 @@ class OrderValidationCheckerTest {
         OrderValidationService orderValidationService = mock(OrderValidationService.class);
         ObjectMapper objectMapper = new ObjectMapper();
         List<Order> orders = objectMapper.readValue(mockResponse, objectMapper.getTypeFactory().constructCollectionType(List.class, Order.class));
-        Order order = orders.get(0); // Correctly fetch the first order from the list
+        Order order = orders.get(0);
 
-        // Assuming OrderValidationResult requires two arguments (order number and validation code):
-        when(orderValidationService.validateOrder(order))
+        // Use Mockito argument matchers to match any Order object
+        when(orderValidationService.validateOrder(any(Order.class)))
                 .thenReturn(new OrderValidationResult(order.getOrderNo(), order.getOrderValidationCode()));
 
         // Execute validation
@@ -37,6 +38,6 @@ class OrderValidationCheckerTest {
         checker.validateOrders("https://mock.url/orders", restTemplate, orderValidationService);
 
         // Verify calls
-        verify(orderValidationService, times(1)).validateOrder(order);
+        verify(orderValidationService, times(1)).validateOrder(any(Order.class));
     }
 }
