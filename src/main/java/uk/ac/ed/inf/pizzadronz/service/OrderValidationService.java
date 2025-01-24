@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 public class OrderValidationService {
 
-    private static final int MAX_PIZZAS = 8;
+    private static final int MAX_PIZZAS = 4;
     private static final int FIXED_CHARGE = 100; // Fixed charge in pence
 
     private final RestTemplate restTemplate;

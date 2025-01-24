@@ -1,42 +1,62 @@
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.web.client.RestTemplate;
 import uk.ac.ed.inf.pizzadronz.models.Order;
 import uk.ac.ed.inf.pizzadronz.models.OrderValidationResult;
 import uk.ac.ed.inf.pizzadronz.service.OrderValidationService;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class OrderValidationCheckerTest {
 
-    @Test
-    void testValidateOrdersFromAPI() {
-        String ordersUrl = "https://ilp-rest-2024.azurewebsites.net/orders";
+    private static final String ORDERS_URL = "https://ilp-rest-2024.azurewebsites.net/orders";
+    private static RestTemplate restTemplate;
+    private static OrderValidationService orderValidationService;
+    private static Order[] orders;
 
-        // Use a real RestTemplate to fetch orders from the API
-        RestTemplate restTemplate = new RestTemplate();
+    @BeforeAll
+    static void setup() {
+        // Initialize RestTemplate and OrderValidationService
+        restTemplate = new RestTemplate();
+        orderValidationService = new OrderValidationService(restTemplate);
 
-        // Initialize OrderValidationService with the real RestTemplate
-        OrderValidationService orderValidationService = new OrderValidationService(restTemplate);
-
+        // Fetch orders from the API
         try {
-            // Fetch orders from the API
-            Order[] orders = restTemplate.getForObject(ordersUrl, Order[].class);
-
-            // Assert that orders were fetched successfully
+            orders = restTemplate.getForObject(ORDERS_URL, Order[].class);
             assertNotNull(orders, "Orders fetched from API should not be null");
             System.out.println("Fetched " + orders.length + " orders from the API.");
-
-            // Validate each order
-            for (Order order : orders) {
-                OrderValidationResult result = orderValidationService.validateOrder(order);
-
-                // Print validation results for each order
-                System.out.printf("Order No: %s | Validation Code: %s | Order Status: %s%n",
-                        order.getOrderNo(), result.getOrderValidationCode(), result.getOrderStatus());
-            }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("Error fetching or validating orders from the API", e);
+            throw new RuntimeException("Error fetching orders from the API", e);
         }
+    }
+
+    static Stream<Order> provideOrders() {
+        // Provide a stream of orders for the parameterized test
+        return Arrays.stream(orders);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideOrders")
+    @DisplayName("Test Order Validation for Each Order")
+    void testValidateOrder(Order order) {
+        // Validate the order using the service
+        OrderValidationResult result = orderValidationService.validateOrder(order);
+
+        // Assert that the validation result matches the order's expected status
+        System.out.printf("Order No: %s | Expected Status: %s | Actual Status: %s%n",
+                order.getOrderNo(), order.getOrderStatus(), result.getOrderStatus());
+
+        assertEquals(
+                order.getOrderStatus(),
+                result.getOrderStatus(),
+                "Validation failed for Order No: " + order.getOrderNo()
+        );
     }
 }
