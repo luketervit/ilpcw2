@@ -4,6 +4,9 @@ public class NextPositionRequest {
     private Position start;
     private Double angle; // Allow null checks
 
+    public NextPositionRequest(LngLat lngLat, int i) {
+    }
+
     public Position getStart() {
         return start;
     }
@@ -23,6 +26,13 @@ public class NextPositionRequest {
     public static class Position {
         private double lng;
         private double lat;
+
+        public Position(double v, double v1) {
+        }
+
+        public Position() {
+
+        }
 
         public double getLng() {
             return lng;

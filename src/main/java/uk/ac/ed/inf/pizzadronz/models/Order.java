@@ -11,6 +11,9 @@ public class Order {
     private List<Pizza> pizzasInOrder;
     private CreditCardInformation creditCardInformation;
 
+    public Order() {
+    }
+
     public String getOrderNo() {
         return orderNo;
     }

@@ -16,6 +16,12 @@ public class LngLatPairRequest {
 
     private Region region;
 
+    public LngLatPairRequest(Region lngLat, LngLat lngLat1) {
+    }
+
+    public LngLatPairRequest(LngLat lngLat, LngLat lngLat1) {
+    }
+
     public Position getPosition1() {
         return position1;
     }

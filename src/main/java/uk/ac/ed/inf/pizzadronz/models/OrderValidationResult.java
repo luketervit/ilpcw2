@@ -12,6 +12,10 @@ public class OrderValidationResult {
         this.orderValidationCode = orderValidationCode;
     }
 
+    public OrderValidationResult() {
+
+    }
+
     public String getOrderStatus() {
         return orderStatus;
     }
